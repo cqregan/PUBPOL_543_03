@@ -1,0 +1,66 @@
+---
+title: "index"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+rm(list = ls())
+
+linkCSV='https://github.com/cqregan/PUBPOL_543_03/raw/main/Use_Of_Force.csv'
+
+dataWorld=read.csv(linkCSV)
+```
+
+```{r}
+str(dataWorld)
+```
+
+```{r}
+linkMap="https://github.com/cqregan/PUBPOL_543_03/raw/main/Seattle_Police_Beats_2008-2015.geojson" 
+
+library(sf)
+```
+```{r}
+mapWorld=read_sf(linkMap)
+```
+
+
+```{r}
+head(mapWorld)
+```
+```{r}
+mapWorld_indexes=merge(mapWorld, #map first
+                   dataWorld, 
+                   by='beat') 
+```
+
+```{r}
+str(mapWorld_indexes)
+```
+```{r}
+library(ggplot2)
+
+baseMap= ggplot(data=mapWorld) + theme_classic() + 
+         geom_sf(fill='grey', 
+                 color=NA) 
+
+baseMap 
+```
+```{r}
+aggregate_by_beat = aggregate(mapWorld_indexes, by = list(mapWorld_indexes$beat), FUN = length)
+```
+
+```{r}
+titleText= 'In which beats do the most use of force incidences occur?'
+sourceText = 'Source: City of Seattle'
+  
+numericMap= baseMap + geom_sf(data=aggregate_by_beat,
+                       aes(fill=Incident_Num), # variable from mapWorld_indexes
+                       color=NA) + scale_fill_gradient(high = 'red', low= 'blue')
+numericMap2 = numericMap + labs(title=titleText,
+                                caption=sourceText)
+
+numericMap2
+```
